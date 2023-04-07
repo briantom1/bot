@@ -1,17 +1,18 @@
 const fs = require("node:fs");
 const { SlashCommandBuilder } = require("discord.js");
 
-let start = 0;
+let s = [];
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("start")
     .setDescription("starts sending blog updates"),
   async execute(interaction) {
-    if (start == 1) {
+    if (s.includes(interaction.channelId)) {
       await interaction.reply({ content: "Already running", ephemeral: true });
+      return ["", -1];
     } else {
-      start = 1;
+      s.push(interaction.channelId);
       await interaction.reply({ content: "Success", ephemeral: true });
     }
     return ["start", interaction.channelId];

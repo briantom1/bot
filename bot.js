@@ -113,7 +113,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
           let num = 0;
           ret.forEach(function (el) {
             var run = setTimeout(function () {
-              client.channels.cache.get(id).send(el);
+              try {
+                client.channels.cache.get(id).send(el);
+              } catch (error) {
+                console.error(error);
+              }
               clearTimeout(run);
             }, 1500 * num);
             num++;
