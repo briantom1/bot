@@ -107,7 +107,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   try {
     let [com, id] = await command.execute(interaction);
     if (com === "start") {
-      setInterval(async () => {
+      (async function send_messages() {
         let ret = await thing(id);
         if (ret !== [] && ret !== undefined) {
           let num = 0;
@@ -116,11 +116,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
               client.channels.cache.get(id).send(el);
               clearTimeout(run);
             }, 1500 * num);
-
             num++;
           });
         }
-      }, 60000);
+        setTimeout(send_messages, 60000);
+      })();
     }
   } catch (error) {
     console.error(error);
