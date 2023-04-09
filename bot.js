@@ -241,7 +241,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             });
           }
         }
-        setTimeout(send_messages, 5000);
+        setTimeout(send_messages, 60000);
       })();
     }
   } catch (error) {
