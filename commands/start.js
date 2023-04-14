@@ -8,7 +8,10 @@ module.exports = {
     .setName("start")
     .setDescription("starts sending blog updates"),
   async execute(interaction) {
-    if (s.includes(interaction.channelId)) {
+    if (
+      s.includes(interaction.channelId) ||
+      interaction.channelId == "1093964963699236924"
+    ) {
       await interaction.reply({ content: "Already running", ephemeral: true });
       return ["", -1];
     } else {

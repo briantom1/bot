@@ -1,3 +1,5 @@
+"use strict";
+
 const fs = require("node:fs");
 const path = require("node:path");
 const {
@@ -34,6 +36,7 @@ const regex =
   /\*\*(?:January|February|March|April|May|June|July|August|September|October|November|December) \d+, \d+:?\*\*/i;
 
 async function get() {
+  // return fs.readFileSync("raw.txt", "utf-8");
   try {
     const response = await fetch(
       "https://raw.githubusercontent.com/ucdavis/ecs132/master/Blog.md"
@@ -76,6 +79,7 @@ function find_snippet(str, index) {
 
 async function thing(id) {
   let d = await get();
+  let data, raw, previous, third;
   if (d == undefined) {
     return;
   }
@@ -170,6 +174,71 @@ async function thing(id) {
   return [write, 0, 0];
 }
 
+function start(com, id) {
+  if (com === "start") {
+    (async function send_messages() {
+      let [ret1, ret2, ret3] = await thing(id);
+      if (ret1 !== undefined && ret1.length != 0) {
+        if (ret2 == 1 && ret3 == 0) {
+          if (!messages.hasOwnProperty(id)) {
+            messages[id] = {};
+            return;
+          }
+          if (messages[id].first == "" || messages[id].first == undefined) {
+            return;
+          }
+          messages[id].first.then((sent) => {
+            sent.edit({ embeds: [make_embed(ret1[0])] });
+          });
+        }
+        if (ret2 == 1 && ret3 == 1) {
+          if (!messages.hasOwnProperty(id)) {
+            messages[id] = {};
+            return;
+          }
+          if (messages[id].first == "" || messages[id].first == undefined) {
+            return;
+          }
+          messages[id].first.then((sent) => {
+            sent.edit({ embeds: [make_embed(ret1[1])] });
+          });
+          if (!messages.hasOwnProperty(id)) {
+            messages[id] = {};
+            return;
+          }
+          if (messages[id].second == "" || messages[id].second == undefined) {
+            return;
+          }
+          messages[id].second.then((sent) => {
+            sent.edit({ embeds: [make_embed(ret1[0])] });
+          });
+        }
+        if (ret2 == 0 && ret3 == 0) {
+          let num = 0;
+          ret1.forEach(function (el) {
+            var run = setTimeout(function () {
+              try {
+                if (!messages.hasOwnProperty(id)) {
+                  messages[id] = {};
+                }
+                messages[id].second = messages[id].first;
+                messages[id].first = client.channels.cache
+                  .get(id)
+                  .send({ embeds: [make_embed(el)] });
+              } catch (error) {
+                console.error(error);
+              }
+              clearTimeout(run);
+            }, 1500 * num);
+            num++;
+          });
+        }
+      }
+      setTimeout(send_messages, 60000);
+    })();
+  }
+}
+
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -182,71 +251,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   try {
     let [com, id] = await command.execute(interaction);
-    if (com === "start") {
-      (async function send_messages() {
-        let [ret1, ret2, ret3] = await thing(id);
-        if (ret1 !== undefined && ret1.length != 0) {
-          if (ret2 == 1 && ret3 == 0) {
-            if (!messages.hasOwnProperty(id)) {
-              messages[id] = {};
-              return;
-            }
-            if (messages[id].first == "" || messages[id].first == undefined) {
-              return;
-            }
-            messages[id].first.then((sent) => {
-              sent.edit({ embeds: [make_embed(ret1[0])] });
-            });
-          }
-          if (ret2 == 1 && ret3 == 1) {
-            if (!messages.hasOwnProperty(id)) {
-              messages[id] = {};
-              return;
-            }
-            if (messages[id].first == "" || messages[id].first == undefined) {
-              return;
-            }
-            messages[id].first.then((sent) => {
-              sent.edit({ embeds: [make_embed(ret1[1])] });
-            });
-            if (!messages.hasOwnProperty(id)) {
-              messages[id] = {};
-              return;
-            }
-            if (messages[id].second == "" || messages[id].second == undefined) {
-              return;
-            }
-            messages[id].second.then((sent) => {
-              sent.edit({ embeds: [make_embed(ret1[0])] });
-            });
-          }
-          if (ret2 == 0 && ret3 == 0) {
-            let num = 0;
-            ret1.forEach(function (el) {
-              var run = setTimeout(function () {
-                try {
-                  if (!messages.hasOwnProperty(id)) {
-                    messages[id] = {};
-                  }
-                  messages[id].second = messages[id].first;
-                  messages[id].first = client.channels.cache
-                    .get(id)
-                    .send({ embeds: [make_embed(el)] });
-                } catch (error) {
-                  console.error(error);
-                }
-                clearTimeout(run);
-              }, 1500 * num);
-              num++;
-            });
-          }
-        }
-        setTimeout(send_messages, 60000);
-      })();
-    }
+    start(com, id);
   } catch (error) {
     console.error(error);
   }
 });
+
+start("start", "1093964963699236924");
 
 client.login(token);
